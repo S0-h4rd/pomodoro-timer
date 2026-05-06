@@ -3,188 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>番茄钟</title>
+    <title>番茄钟 · 喫茶</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* ============================================
-           CSS 样式部分
-           定义页面的视觉效果和动画
+           日式喫茶店风格 · Kissaten Pomodoro
            ============================================ */
 
-        /* 全局重置：清除浏览器默认的 margin 和 padding */
+        :root {
+            --paper: #F7F3EE;
+            --paper-deep: #EDE7DF;
+            --ink: #2C2420;
+            --ink-light: #5C5048;
+            --ink-faint: #9A8E84;
+            --tomato: #C94A4A;
+            --tomato-soft: #D97A7A;
+            --tomato-glow: rgba(201, 74, 74, 0.12);
+            --mint: #5A9E7A;
+            --mint-soft: #8ABFA0;
+            --mint-glow: rgba(90, 158, 122, 0.12);
+            --sky: #5A8EAE;
+            --sky-soft: #8AB0C8;
+            --sky-glow: rgba(90, 142, 174, 0.12);
+            --wood: #8B7355;
+            --wood-light: #B8A080;
+            --shadow-soft: 0 4px 20px rgba(44, 36, 32, 0.06);
+            --shadow-medium: 0 8px 32px rgba(44, 36, 32, 0.10);
+            --radius-drawn: 24px 28px 22px 26px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* 页面主体样式 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            /* 紫色渐变背景，从左上到右下 */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;  /* 最小高度为视口高度，确保背景铺满 */
+            font-family: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
+            background: var(--paper);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;  /* 水平居中 */
-            align-items: center;      /* 垂直居中 */
-            color: #fff;
+            justify-content: center;
+            align-items: center;
+            color: var(--ink);
+            overflow-x: hidden;
         }
 
-        /* 主容器：包裹所有内容 */
+        /* 背景纹理层 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 主容器 */
         .container {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 2rem;
+            max-width: 480px;
+            width: 100%;
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        /* 标题样式 */
-        h1 {
-            font-size: 2.5rem;
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 标题 */
+        .brand {
+            margin-bottom: 2.5rem;
+            animation: fadeInUp 0.8s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .brand h1 {
+            font-family: 'Noto Serif SC', 'Songti SC', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.15em;
+            line-height: 1.3;
+        }
+
+        .brand .sub {
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            letter-spacing: 0.3em;
+            margin-top: 0.5rem;
+            font-weight: 400;
+        }
+
+        .brand .divider {
+            width: 40px;
+            height: 2px;
+            background: var(--wood-light);
+            margin: 1rem auto 0;
+            border-radius: 1px;
+        }
+
+        /* 任务输入 */
+        .task-input {
             margin-bottom: 2rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);  /* 文字阴影增加立体感 */
+            animation: fadeInUp 0.8s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
-        /* ============================================
-           计时器圆环区域
-           ============================================ */
+        .task-input input {
+            width: 100%;
+            max-width: 360px;
+            padding: 1rem 1.8rem;
+            border: 1.5px solid var(--paper-deep);
+            border-radius: var(--radius-drawn);
+            background: #FFFCF8;
+            color: var(--ink);
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            font-size: 0.95rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .task-input input::placeholder {
+            color: var(--ink-faint);
+            font-size: 0.9rem;
+        }
+
+        .task-input input:focus {
+            border-color: var(--wood-light);
+            box-shadow: 0 4px 24px rgba(139, 115, 85, 0.1), var(--shadow-soft);
+            transform: translateY(-1px);
+        }
+
+        /* 模式切换 */
+        .mode-tabs {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+            animation: fadeInUp 0.8s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .mode-btn {
+            padding: 0.6rem 1.4rem;
+            border: 1.5px solid var(--paper-deep);
+            border-radius: var(--radius-drawn);
+            background: #FFFCF8;
+            color: var(--ink-light);
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--tomato);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: inherit;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+            border-color: transparent;
+        }
+
+        .mode-btn:hover::before {
+            opacity: 0.06;
+        }
+
+        .mode-btn.active {
+            background: var(--tomato);
+            color: #FFFCF8;
+            border-color: var(--tomato);
+            box-shadow: 0 6px 24px var(--tomato-glow);
+        }
+
+        .mode-btn.active[data-mode="shortBreak"] {
+            background: var(--mint);
+            border-color: var(--mint);
+            box-shadow: 0 6px 24px var(--mint-glow);
+        }
+
+        .mode-btn.active[data-mode="longBreak"] {
+            background: var(--sky);
+            border-color: var(--sky);
+            box-shadow: 0 6px 24px var(--sky-glow);
+        }
+
+        /* 计时器圆环 */
         .timer-wrapper {
             position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto 3rem;  /* 上下0，左右自动（居中），底部3rem */
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 2.5rem;
+            animation: fadeInUp 0.8s 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
-        /* 外圈圆环：使用 conic-gradient 实现进度环效果
-           conic-gradient 是圆锥渐变，从中心点向外辐射
-           --progress-color 和 --progress 是 CSS 变量，由 JS 动态设置 */
         .timer-circle {
             width: 100%;
             height: 100%;
-            border-radius: 50%;  /* 圆形 */
-            /* 圆锥渐变：从 0% 到 progress 显示进度色，之后显示半透明色 */
+            border-radius: 50%;
             background: conic-gradient(
-                var(--progress-color, #ff6b6b) var(--progress, 0%),
-                rgba(255,255,255,0.15) var(--progress, 0%)
+                var(--progress-color, var(--tomato)) var(--progress, 0%),
+                var(--paper-deep) var(--progress, 0%)
             );
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            transition: background 0.3s ease;  /* 渐变颜色变化时有动画 */
+            box-shadow:
+                inset 0 2px 8px rgba(44, 36, 32, 0.04),
+                0 8px 40px rgba(44, 36, 32, 0.08);
+            transition: background 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
         }
 
-        /* 内圈：玻璃拟态效果，显示时间和标签 */
-        .timer-inner {
-            width: 260px;
-            height: 260px;
+        .timer-circle::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);  /* 半透明白色背景 */
-            backdrop-filter: blur(10px);          /* 毛玻璃模糊效果 */
+            background: var(--paper);
+            z-index: 0;
+        }
+
+        .timer-inner {
+            position: relative;
+            z-index: 1;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: #FFFCF8;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            box-shadow:
+                inset 0 2px 6px rgba(44, 36, 32, 0.03),
+                0 2px 12px rgba(44, 36, 32, 0.04);
         }
 
-        /* 时间数字显示 */
         .timer-display {
-            font-size: 4rem;
-            font-weight: 300;  /* 细体字 */
-            letter-spacing: 2px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 3.6rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.08em;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.4s ease;
         }
 
-        /* 状态标签（如"专注中"、"已暂停"） */
         .timer-label {
-            font-size: 1rem;
-            opacity: 0.8;
-            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--ink-faint);
+            margin-top: 0.6rem;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            transition: color 0.4s ease;
         }
 
-        /* ============================================
-           模式切换按钮（专注/短休息/长休息）
-           ============================================ */
-        .mode-tabs {
-            display: flex;
-            gap: 1rem;           /* 按钮之间的间距 */
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-
-        .mode-btn {
-            padding: 0.75rem 1.5rem;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50px;  /* 圆角胶囊形状 */
-            background: transparent;
-            color: #fff;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .mode-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        /* 当前选中的模式按钮样式 */
-        .mode-btn.active {
-            background: #fff;
-            color: #667eea;       /* 紫色文字 */
-            border-color: #fff;
-        }
-
-        /* ============================================
-           控制按钮（重置/开始/跳过）
-           ============================================ */
+        /* 控制按钮 */
         .controls {
             display: flex;
-            gap: 1.5rem;
+            gap: 1.25rem;
             justify-content: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            animation: fadeInUp 0.8s 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .control-btn {
-            width: 70px;
-            height: 70px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            border: none;
-            font-size: 1.5rem;
+            border: 1.5px solid var(--paper-deep);
+            background: #FFFCF8;
+            color: var(--ink-light);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
             display: flex;
             justify-content: center;
             align-items: center;
+            box-shadow: var(--shadow-soft);
         }
 
-        /* 主按钮（开始/暂停）更大更突出 */
+        .control-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--wood-light);
+            color: var(--ink);
+        }
+
+        .control-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
         .control-btn.primary {
-            background: #fff;
-            color: #667eea;
-            font-size: 2rem;
-            width: 90px;
-            height: 90px;
+            width: 72px;
+            height: 72px;
+            background: var(--tomato);
+            color: #FFFCF8;
+            border-color: var(--tomato);
+            box-shadow: 0 6px 24px var(--tomato-glow);
         }
 
         .control-btn.primary:hover {
-            transform: scale(1.05);  /* 悬停时轻微放大 */
-            box-shadow: 0 5px 20px rgba(255,255,255,0.3);
+            background: var(--tomato-soft);
+            border-color: var(--tomato-soft);
+            box-shadow: 0 8px 32px var(--tomato-glow);
+            color: #FFFCF8;
         }
 
-        /* 次要按钮（重置/跳过） */
-        .control-btn.secondary {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-        }
-
-        .control-btn.secondary:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        /* ============================================
-           统计数据区域
-           ============================================ */
+        /* 统计数据 */
         .stats {
             display: flex;
-            gap: 2rem;
+            gap: 3rem;
             justify-content: center;
-            margin-top: 2rem;
+            animation: fadeInUp 0.8s 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .stat-item {
@@ -192,139 +342,128 @@
         }
 
         .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.875rem;
-            opacity: 0.7;
+            font-size: 0.75rem;
+            color: var(--ink-faint);
+            margin-top: 0.4rem;
+            letter-spacing: 0.1em;
         }
 
-        /* ============================================
-           任务输入框
-           ============================================ */
-        .task-input {
-            margin-bottom: 2rem;
+        /* 装饰元素 */
+        .deco-leaf {
+            position: fixed;
+            width: 120px;
+            height: 120px;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .task-input input {
-            width: 100%;
-            max-width: 400px;
-            padding: 1rem 1.5rem;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 1rem;
-            text-align: center;
-            outline: none;
-            transition: all 0.3s ease;
+        .deco-leaf.top-right {
+            top: -20px;
+            right: -20px;
+            transform: rotate(45deg);
         }
 
-        /* 输入框占位符文字颜色 */
-        .task-input input::placeholder {
-            color: rgba(255,255,255,0.5);
+        .deco-leaf.bottom-left {
+            bottom: -30px;
+            left: -30px;
+            transform: rotate(-135deg);
         }
 
-        /* 输入框获得焦点时的样式 */
-        .task-input input:focus {
-            border-color: #fff;
-            background: rgba(255,255,255,0.15);
+        /* 完成时的庆祝动画 */
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.08); }
+            50% { transform: scale(0.98); }
+            75% { transform: scale(1.03); }
+            100% { transform: scale(1); }
         }
 
-        /* ============================================
-           响应式设计：适配手机屏幕
-           ============================================ */
+        .celebrating .timer-wrapper {
+            animation: celebrate 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* 响应式 */
         @media (max-width: 480px) {
-            .timer-wrapper {
-                width: 250px;
-                height: 250px;
-            }
-
-            .timer-inner {
-                width: 210px;
-                height: 210px;
-            }
-
-            .timer-display {
-                font-size: 3rem;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
+            .container { padding: 2rem 1.5rem; }
+            .brand h1 { font-size: 1.8rem; }
+            .timer-wrapper { width: 240px; height: 240px; }
+            .timer-inner { width: 196px; height: 196px; }
+            .timer-display { font-size: 3rem; }
+            .mode-btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
-    <!-- ============================================
-         HTML 结构部分
-         定义页面的 DOM 元素
-         ============================================ -->
+    <!-- 装饰叶片 -->
+    <svg class="deco-leaf top-right" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M50 10 Q80 30 85 60 Q70 85 50 95 Q30 85 15 60 Q20 30 50 10Z"/>
+        <path d="M50 10 Q50 50 50 95"/>
+    </svg>
+    <svg class="deco-leaf bottom-left" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M50 10 Q80 30 85 60 Q70 85 50 95 Q30 85 15 60 Q20 30 50 10Z"/>
+        <path d="M50 10 Q50 50 50 95"/>
+    </svg>
 
     <div class="container">
-        <!-- 页面标题 -->
-        <h1>番茄钟</h1>
-
-        <!-- 任务输入：记录当前专注的任务名称 -->
-        <div class="task-input">
-            <input type="text" id="taskInput" placeholder="当前任务..." />
+        <div class="brand">
+            <h1>番茄钟</h1>
+            <div class="sub">POMODORO TIMER</div>
+            <div class="divider"></div>
         </div>
 
-        <!-- 模式切换按钮：专注(25分钟) / 短休息(5分钟) / 长休息(15分钟)
-             data-mode: JS 用来识别点击了哪个模式
-             data-time: 该模式的分钟数（CSS 中未使用，主要在 JS 中） -->
+        <div class="task-input">
+            <input type="text" id="taskInput" placeholder="此刻专注的事..." />
+        </div>
+
         <div class="mode-tabs">
             <button class="mode-btn active" data-mode="pomodoro" data-time="25">专注</button>
             <button class="mode-btn" data-mode="shortBreak" data-time="5">短休息</button>
             <button class="mode-btn" data-mode="longBreak" data-time="15">长休息</button>
         </div>
 
-        <!-- 计时器圆环区域 -->
         <div class="timer-wrapper">
             <div class="timer-circle" id="timerCircle">
                 <div class="timer-inner">
-                    <!-- 时间显示，格式为 MM:SS -->
                     <div class="timer-display" id="timerDisplay">25:00</div>
-                    <!-- 状态标签：显示"准备开始"、"专注中"、"已暂停"等 -->
                     <div class="timer-label" id="timerLabel">准备开始</div>
                 </div>
             </div>
         </div>
 
-        <!-- 控制按钮组 -->
         <div class="controls">
-            <!-- 重置按钮：圆形箭头图标 -->
             <button class="control-btn secondary" id="resetBtn" title="重置">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                     <path d="M3 3v5h5"/>
                 </svg>
             </button>
 
-            <!-- 开始/暂停按钮：主按钮，包含两个 SVG 图标，通过 JS 切换显示 -->
             <button class="control-btn primary" id="toggleBtn" title="开始/暂停">
-                <!-- 播放图标 -->
-                <svg id="playIcon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <svg id="playIcon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M8 5v14l11-7z"/>
                 </svg>
-                <!-- 暂停图标（初始隐藏） -->
-                <svg id="pauseIcon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+                <svg id="pauseIcon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none">
                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
             </button>
 
-            <!-- 跳过按钮：跳到下一个阶段 -->
             <button class="control-btn secondary" id="skipBtn" title="跳过">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M5 4l10 8-10 8V4z"/>
                     <path d="M19 5v14"/>
                 </svg>
             </button>
         </div>
 
-        <!-- 统计信息 -->
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-value" id="completedCount">0</div>
@@ -337,216 +476,141 @@
         </div>
     </div>
 
-    <!-- ============================================
-         JavaScript 逻辑部分
-         实现计时器核心功能和交互
-         ============================================ -->
     <script>
-        // ============================================
-        // 1. 常量定义：三种模式的时间配置
-        // ============================================
-        // MODES 对象存储三种模式的配置：
-        // - time: 总秒数（用于计时）
-        // - color: 进度环颜色（CSS 变量值）
-        // - label: 状态标签文字
         const MODES = {
-            pomodoro:   { time: 25 * 60, color: '#ff6b6b', label: '专注中' },   // 25分钟 = 1500秒，红色
-            shortBreak: { time: 5 * 60,  color: '#4ecdc4', label: '短休息' },   // 5分钟 = 300秒，青色
-            longBreak:  { time: 15 * 60, color: '#45b7d1', label: '长休息' }    // 15分钟 = 900秒，蓝色
+            pomodoro:   { time: 25 * 60, color: 'var(--tomato)', label: '专注中' },
+            shortBreak: { time: 5 * 60,  color: 'var(--mint)',   label: '短休息' },
+            longBreak:  { time: 15 * 60, color: 'var(--sky)',    label: '长休息' }
         };
 
-        // ============================================
-        // 2. 状态变量：记录计时器的当前状态
-        // ============================================
-        let currentMode = 'pomodoro';      // 当前模式：pomodoro / shortBreak / longBreak
-        let timeLeft = MODES.pomodoro.time; // 剩余秒数，初始为专注模式的25分钟
-        let totalTime = MODES.pomodoro.time; // 当前模式的总秒数（用于计算进度百分比）
-        let isRunning = false;              // 计时器是否正在运行
-        let timerInterval = null;           // setInterval 返回的 ID，用于清除定时器
+        let currentMode = 'pomodoro';
+        let timeLeft = MODES.pomodoro.time;
+        let totalTime = MODES.pomodoro.time;
+        let isRunning = false;
+        let timerInterval = null;
 
-        // ============================================
-        // 3. 统计数据：从 localStorage 读取持久化数据
-        // ============================================
-        // localStorage 是浏览器提供的本地存储，刷新页面后数据不会丢失
-        // parseInt 将字符串转换为整数，|| '0' 提供默认值防止 null
         let completedPomodoros = parseInt(localStorage.getItem('completedPomodoros') || '0');
         let totalFocusMinutes = parseInt(localStorage.getItem('totalFocusMinutes') || '0');
         let lastDate = localStorage.getItem('lastDate') || new Date().toDateString();
 
-        // ============================================
-        // 4. DOM 元素引用：获取页面上的元素以便操作
-        // ============================================
-        // 通过 id 获取元素，存储在变量中避免重复查询
-        const timerDisplay = document.getElementById('timerDisplay');    // 时间数字
-        const timerLabel = document.getElementById('timerLabel');        // 状态标签
-        const timerCircle = document.getElementById('timerCircle');      // 外圈圆环
-        const toggleBtn = document.getElementById('toggleBtn');          // 开始/暂停按钮
-        const playIcon = document.getElementById('playIcon');            // 播放图标
-        const pauseIcon = document.getElementById('pauseIcon');          // 暂停图标
-        const resetBtn = document.getElementById('resetBtn');            // 重置按钮
-        const skipBtn = document.getElementById('skipBtn');              // 跳过按钮
-        const modeBtns = document.querySelectorAll('.mode-btn');         // 所有模式按钮（NodeList）
-        const completedCount = document.getElementById('completedCount'); // 完成数量显示
-        const totalFocusTime = document.getElementById('totalFocusTime'); // 专注分钟显示
-        const taskInput = document.getElementById('taskInput');          // 任务输入框
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerLabel = document.getElementById('timerLabel');
+        const timerCircle = document.getElementById('timerCircle');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const resetBtn = document.getElementById('resetBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const completedCount = document.getElementById('completedCount');
+        const totalFocusTime = document.getElementById('totalFocusTime');
+        const taskInput = document.getElementById('taskInput');
 
-        // ============================================
-        // 5. 核心函数：检查是否是新的一天
-        // ============================================
-        // 原理：比较 lastDate（上次使用日期）和今天
-        // 如果是新的一天，重置今日统计数据
         function checkNewDay() {
-            const today = new Date().toDateString();  // 例如 "Tue May 06 2026"
+            const today = new Date().toDateString();
             if (lastDate !== today) {
-                completedPomodoros = 0;   // 重置完成数
-                totalFocusMinutes = 0;    // 重置专注分钟
-                lastDate = today;         // 更新日期记录
-                saveStats();              // 保存到 localStorage
+                completedPomodoros = 0;
+                totalFocusMinutes = 0;
+                lastDate = today;
+                saveStats();
             }
         }
 
-        // ============================================
-        // 6. 核心函数：保存统计数据到 localStorage
-        // ============================================
-        // localStorage 只能存储字符串，数字会自动转字符串
         function saveStats() {
             localStorage.setItem('completedPomodoros', completedPomodoros);
             localStorage.setItem('totalFocusMinutes', totalFocusMinutes);
             localStorage.setItem('lastDate', lastDate);
         }
 
-        // ============================================
-        // 7. 核心函数：更新统计数字显示
-        // ============================================
         function updateStats() {
-            completedCount.textContent = completedPomodoros;  // 更新 DOM 显示
+            completedCount.textContent = completedPomodoros;
             totalFocusTime.textContent = totalFocusMinutes;
         }
 
-        // ============================================
-        // 8. 核心函数：格式化时间（秒 → MM:SS）
-        // ============================================
-        // 例如：formatTime(1500) → "25:00"
-        //       formatTime(65)   → "01:05"
         function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);  // 分钟：向下取整
-            const s = seconds % 60;               // 秒数：取余数
-            // padStart(2, '0')：不足2位时前面补0
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        // ============================================
-        // 9. 核心函数：更新显示（时间和进度环）
-        // ============================================
-        // 每次计时器 tick 或切换模式时调用
         function updateDisplay() {
             timerDisplay.textContent = formatTime(timeLeft);
-            // 计算进度百分比：已过时间 / 总时间 * 100
-            // (totalTime - timeLeft) = 已过时间
             const progress = ((totalTime - timeLeft) / totalTime) * 100;
-            // 设置 CSS 变量 --progress，控制圆锥渐变的分割点
             timerCircle.style.setProperty('--progress', `${progress}%`);
         }
 
-        // ============================================
-        // 10. 核心函数：切换模式
-        // ============================================
-        // 参数 mode: 'pomodoro' | 'shortBreak' | 'longBreak'
         function setMode(mode) {
-            currentMode = mode;                          // 更新当前模式
-            totalTime = MODES[mode].time;                // 获取该模式的总时间
-            timeLeft = totalTime;                        // 重置剩余时间
-            // 设置进度环颜色：通过 CSS 变量 --progress-color
+            currentMode = mode;
+            totalTime = MODES[mode].time;
+            timeLeft = totalTime;
             timerCircle.style.setProperty('--progress-color', MODES[mode].color);
-            // 更新标签：如果正在运行显示"专注中"，否则显示"准备开始"
             timerLabel.textContent = isRunning ? MODES[mode].label : '准备开始';
-            updateDisplay();                             // 更新显示
+            updateDisplay();
 
-            // 更新模式按钮的激活状态
             modeBtns.forEach(btn => {
-                // classList.toggle('active', condition)：condition 为 true 时添加 class，false 时移除
                 btn.classList.toggle('active', btn.dataset.mode === mode);
             });
         }
 
-        // ============================================
-        // 11. 核心函数：切换开始/暂停
-        // ============================================
         function toggleTimer() {
             if (isRunning) {
-                pauseTimer();   // 如果正在运行，则暂停
+                pauseTimer();
             } else {
-                startTimer();   // 如果已暂停，则开始
+                startTimer();
             }
         }
 
-        // ============================================
-        // 12. 核心函数：开始计时
-        // ============================================
         function startTimer() {
-            isRunning = true;                          // 标记为运行中
-            playIcon.style.display = 'none';           // 隐藏播放图标
-            pauseIcon.style.display = 'block';         // 显示暂停图标
-            timerLabel.textContent = MODES[currentMode].label;  // 更新标签
+            isRunning = true;
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+            timerLabel.textContent = MODES[currentMode].label;
 
-            // setInterval：每 1000 毫秒（1秒）执行一次回调
             timerInterval = setInterval(() => {
-                timeLeft--;                            // 剩余时间减1秒
-                updateDisplay();                       // 更新显示
+                timeLeft--;
+                updateDisplay();
 
                 if (timeLeft <= 0) {
-                    completeTimer();                   // 时间到，完成计时
+                    completeTimer();
                 }
             }, 1000);
         }
 
-        // ============================================
-        // 13. 核心函数：暂停计时
-        // ============================================
         function pauseTimer() {
-            isRunning = false;                         // 标记为已暂停
-            playIcon.style.display = 'block';          // 显示播放图标
-            pauseIcon.style.display = 'none';          // 隐藏暂停图标
-            timerLabel.textContent = '已暂停';          // 更新标签
-            clearInterval(timerInterval);              // 清除定时器，停止 tick
+            isRunning = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            timerLabel.textContent = '已暂停';
+            clearInterval(timerInterval);
         }
 
-        // ============================================
-        // 14. 核心函数：重置计时器
-        // ============================================
         function resetTimer() {
-            pauseTimer();                              // 先暂停
-            timeLeft = totalTime;                      // 剩余时间重置为总时间
-            timerLabel.textContent = '准备开始';        // 重置标签
-            updateDisplay();                           // 更新显示（进度回到0%）
+            pauseTimer();
+            timeLeft = totalTime;
+            timerLabel.textContent = '准备开始';
+            updateDisplay();
         }
 
-        // ============================================
-        // 15. 核心函数：计时完成
-        // ============================================
-        // 当倒计时到 0 时调用，处理统计和自动切换逻辑
         function completeTimer() {
-            pauseTimer();                              // 先暂停
+            pauseTimer();
+            document.body.classList.add('celebrating');
+            setTimeout(() => document.body.classList.remove('celebrating'), 600);
 
-            // 如果当前是专注模式，记录统计数据
             if (currentMode === 'pomodoro') {
-                completedPomodoros++;                  // 完成数+1
-                totalFocusMinutes += Math.floor(MODES.pomodoro.time / 60);  // 增加25分钟
-                saveStats();                           // 保存到 localStorage
-                updateStats();                         // 更新显示
+                completedPomodoros++;
+                totalFocusMinutes += Math.floor(MODES.pomodoro.time / 60);
+                saveStats();
+                updateStats();
 
-                // 判断进入哪种休息：每4个番茄后进入长休息
                 if (completedPomodoros % 4 === 0) {
-                    setMode('longBreak');              // 第4、8、12...个番茄 → 长休息
+                    setMode('longBreak');
                 } else {
-                    setMode('shortBreak');             // 其他 → 短休息
+                    setMode('shortBreak');
                 }
             } else {
-                // 如果是休息模式结束，回到专注模式
                 setMode('pomodoro');
             }
 
-            // 发送桌面通知（如果用户已授权）
             if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('番茄钟', {
                     body: currentMode === 'pomodoro'
@@ -557,63 +621,40 @@
             }
         }
 
-        // ============================================
-        // 16. 核心函数：跳过当前阶段
-        // ============================================
         function skipTimer() {
-            pauseTimer();                              // 先暂停
+            pauseTimer();
             if (currentMode === 'pomodoro') {
-                setMode('shortBreak');                 // 跳过专注 → 短休息
+                setMode('shortBreak');
             } else {
-                setMode('pomodoro');                   // 跳过休息 → 专注
+                setMode('pomodoro');
             }
         }
 
-        // ============================================
-        // 17. 事件监听：绑定按钮点击事件
-        // ============================================
-
-        // 开始/暂停按钮点击
         toggleBtn.addEventListener('click', toggleTimer);
-
-        // 重置按钮点击
         resetBtn.addEventListener('click', resetTimer);
-
-        // 跳过按钮点击
         skipBtn.addEventListener('click', skipTimer);
 
-        // 模式按钮点击（遍历所有模式按钮）
         modeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                if (isRunning) pauseTimer();           // 如果正在运行，先暂停
-                setMode(btn.dataset.mode);             // 切换到点击的模式
+                if (isRunning) pauseTimer();
+                setMode(btn.dataset.mode);
             });
         });
 
-        // ============================================
-        // 18. 键盘快捷键：空格键控制开始/暂停
-        // ============================================
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {                  // 检测空格键
-                e.preventDefault();                    // 阻止默认行为（防止页面滚动）
-                toggleTimer();                         // 切换开始/暂停
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
             }
         });
 
-        // ============================================
-        // 19. 请求桌面通知权限
-        // ============================================
-        // 首次访问时询问用户是否允许发送通知
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
 
-        // ============================================
-        // 20. 初始化：页面加载时执行
-        // ============================================
-        checkNewDay();      // 检查是否新的一天，重置统计
-        updateStats();      // 显示统计数据
-        setMode('pomodoro'); // 默认进入专注模式
+        checkNewDay();
+        updateStats();
+        setMode('pomodoro');
     </script>
 </body>
 </html>
